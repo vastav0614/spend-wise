@@ -78,36 +78,6 @@ function getMonthStart(dateString: string) {
   return new Date(date.getFullYear(), date.getMonth(), 1);
 }
 
-function getGeneratedIncome(incomeEntries: IncomeEntry[]) {
-  const today = new Date();
-  const oneTimeIncomes = incomeEntries.filter((entry) => entry.recurrence !== 'monthly');
-  const recurringIncomes = incomeEntries
-    .filter((entry) => entry.recurrence === 'monthly')
-    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-
-  const recurringInstallments = recurringIncomes.flatMap((entry, index) => {
-    const nextRecurringEntry = recurringIncomes[index + 1];
-    const startMonth = getMonthStart(entry.date);
-    const endBoundaryMonth = nextRecurringEntry ? getMonthStart(nextRecurringEntry.date) : new Date(today.getFullYear(), today.getMonth() + 1, 1);
-    const installments = [];
-    let cursor = new Date(startMonth);
-
-    while (cursor < endBoundaryMonth && cursor <= today) {
-      const dateStr = toLocalYYYYMMDD(cursor);
-      installments.push({
-        ...entry,
-        id: `${entry.id}-${getMonthKey(dateStr)}`,
-        date: dateStr,
-      });
-      cursor = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1);
-    }
-
-    return installments;
-  });
-
-  return [...oneTimeIncomes, ...recurringInstallments];
-}
-
 function getEmiInstallments(emiPlans: EMIPlan[]) {
   const today = new Date();
 
@@ -184,7 +154,6 @@ export default function DashboardPage() {
     const budgets = await getBudgets();
     const storedEmis = await getEmiPlans();
     const emiInstallments = getEmiInstallments(storedEmis);
-    const income = getGeneratedIncome(storedIncome);
     const allExpenses = [...expenses, ...emiInstallments];
     const thisMonthKey = getMonthKey(new Date().toISOString());
 
@@ -197,7 +166,7 @@ export default function DashboardPage() {
 
     // Calculate previous months unspent balance (previous savings)
     const currentMonthKey = getMonthKey(toLocalYYYYMMDD(new Date()));
-    const pastIncomes = income.filter((inc: IncomeEntry) => getMonthKey(inc.date) < currentMonthKey);
+    const pastIncomes = storedIncome.filter((inc: IncomeEntry) => getMonthKey(inc.date) < currentMonthKey);
     const pastExpenses = allExpenses.filter((exp: any) => getMonthKey(exp.date) < currentMonthKey);
     const pastIncomeTotal = pastIncomes.reduce((sum: number, inc: IncomeEntry) => sum + (inc.amount || 0), 0);
     const pastExpenseTotal = pastExpenses.reduce((sum: number, exp: any) => sum + (exp.amount || 0), 0);
@@ -240,50 +209,49 @@ export default function DashboardPage() {
       return matchesSearch && matchesDate;
     });
 
-    const total = filtered.reduce((sum: number, exp: any) => sum + (exp.amount || 0), 0);
+    const presentMonthExpenses = (!dateFrom && !dateTo && timePeriod === 'all')
+      ? allExpenses.filter((exp: any) => getMonthKey(exp.date) === currentMonthKey)
+      : filtered;
+
+    const total = presentMonthExpenses.reduce((sum: number, exp: any) => sum + (exp.amount || 0), 0);
     setTotalExpenses(total);
 
-    const filteredIncome = income.filter((inc: IncomeEntry) => {
-      // If default view (no custom date range filter), exclude past months income from current month total income
-      if (!dateFrom && !dateTo && timePeriod === 'all') {
-        if (getMonthKey(inc.date) < currentMonthKey) {
-          return false;
-        }
-      }
+    const filteredIncome = (!dateFrom && !dateTo && timePeriod === 'all')
+      ? storedIncome.filter((inc: IncomeEntry) => getMonthKey(inc.date) === currentMonthKey)
+      : storedIncome.filter((inc: IncomeEntry) => {
+          let matchesDate = true;
 
-      let matchesDate = true;
+          if (dateFrom) {
+            matchesDate = matchesDate && inc.date >= dateFrom;
+          }
+          if (dateTo) {
+            matchesDate = matchesDate && inc.date <= dateTo;
+          }
 
-      if (dateFrom) {
-        matchesDate = matchesDate && inc.date >= dateFrom;
-      }
-      if (dateTo) {
-        matchesDate = matchesDate && inc.date <= dateTo;
-      }
+          if (timePeriod !== 'all') {
+            const incomeDate = new Date(inc.date);
+            const today = new Date();
+            const thirtyDaysAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
+            const ninetyDaysAgo = new Date(today.getTime() - 90 * 24 * 60 * 60 * 1000);
+            const oneYearAgo = new Date(today.getTime() - 365 * 24 * 60 * 60 * 1000);
 
-      if (timePeriod !== 'all') {
-        const incomeDate = new Date(inc.date);
-        const today = new Date();
-        const thirtyDaysAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
-        const ninetyDaysAgo = new Date(today.getTime() - 90 * 24 * 60 * 60 * 1000);
-        const oneYearAgo = new Date(today.getTime() - 365 * 24 * 60 * 60 * 1000);
+            switch (timePeriod) {
+              case '30':
+                matchesDate = matchesDate && incomeDate >= thirtyDaysAgo;
+                break;
+              case '90':
+                matchesDate = matchesDate && incomeDate >= ninetyDaysAgo;
+                break;
+              case '365':
+                matchesDate = matchesDate && incomeDate >= oneYearAgo;
+                break;
+            }
+          }
 
-        switch (timePeriod) {
-          case '30':
-            matchesDate = matchesDate && incomeDate >= thirtyDaysAgo;
-            break;
-          case '90':
-            matchesDate = matchesDate && incomeDate >= ninetyDaysAgo;
-            break;
-          case '365':
-            matchesDate = matchesDate && incomeDate >= oneYearAgo;
-            break;
-        }
-      }
+          return matchesDate;
+        });
 
-      return matchesDate;
-    });
-
-    const allIncomeForChart = income.filter((inc: IncomeEntry) => {
+    const allIncomeForChart = storedIncome.filter((inc: IncomeEntry) => {
       let matchesDate = true;
 
       if (dateFrom) {
@@ -475,7 +443,7 @@ export default function DashboardPage() {
   };
 
   const netCurrentMonthBalance = totalIncome - totalExpenses;
-  const totalAvailableBalance = netCurrentMonthBalance + previousSavings;
+  const totalAvailableBalance = netCurrentMonthBalance;
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
@@ -605,8 +573,8 @@ export default function DashboardPage() {
         />
         <StatCard
           title="Total Available Balance"
-          amount={formatCurrency(Math.max(0, totalAvailableBalance), userProfile)}
-          change={totalAvailableBalance >= 0 ? 'Surplus including savings' : 'Deficit'}
+          amount={formatCurrency(totalAvailableBalance, userProfile)}
+          change={totalAvailableBalance >= 0 ? 'Surplus for this month' : 'Deficit for this month'}
           isPositive={totalAvailableBalance >= 0}
           icon={<ArrowUpRight className="text-purple-500" />}
           color="purple"

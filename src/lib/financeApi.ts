@@ -402,6 +402,7 @@ export async function getSavingsGoals(): Promise<SavingsGoal[]> {
   }
 }
 
+
 export function calculatePreviousSavingsPool(): number {
   const expenses = readLocalArray<Expense>(EXPENSES_KEY);
   const storedIncome = readLocalArray<IncomeEntry>(INCOME_KEY);
