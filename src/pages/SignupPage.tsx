@@ -32,7 +32,7 @@ export default function SignupPage() {
 
     try {
       const user = await signUp(formData.fullName.trim(), formData.email.trim(), formData.password);
-      const inferredCurrency = inferCurrencyFromPhoneNumber(formData.phoneNumber);
+      const inferredCurrency = inferCurrencyFromPhoneNumber(formData.phoneNumber) || { currency: 'USD', locale: 'en-US' };
 
       saveUserProfile({
         fullName: user.fullName,
