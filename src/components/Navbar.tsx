@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Bell, Search, Sun, Moon, User, X } from 'lucide-react';
-import { useLocation } from 'react-router-dom';
+import { Bell, Search, Sun, Moon, User, X, Menu, LayoutDashboard, PlusCircle, History, Wallet, Target, Settings, LogOut, DollarSign, CreditCard } from 'lucide-react';
+import { useLocation, Link, useNavigate } from 'react-router-dom';
 import { formatCurrency, getStoredUserProfile, type UserProfile } from '../lib/userProfile';
+import { logOut } from '../lib/auth';
+import { cn } from '../lib/utils';
 import { getSavingsGoals } from '../lib/financeApi';
 import type { SavingsGoal } from '../types';
 
@@ -25,13 +27,27 @@ function readStoredValue<T>(key: string, fallback: T): T {
   }
 }
 
+const navItems = [
+  { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
+  { icon: PlusCircle, label: 'Add Expense', path: '/add-expense' },
+  { icon: DollarSign, label: 'Add Income', path: '/add-income' },
+  { icon: CreditCard, label: 'EMI Plans', path: '/dashboard#emi' },
+  { icon: History, label: 'History', path: '/history' },
+  { icon: Wallet, label: 'Budget', path: '/budget' },
+  { icon: Target, label: 'Savings', path: '/savings' },
+  { icon: Settings, label: 'Settings', path: '/settings' },
+  { icon: LogOut, label: 'Logout', path: '/' },
+];
+
 export default function Navbar() {
   const [isDark, setIsDark] = useState(getDarkMode);
   const [searchTerm, setSearchTerm] = useState('');
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
   const [profile, setProfile] = useState<UserProfile>(getStoredUserProfile);
   const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleThemeChange = (e: CustomEvent<{ isDark: boolean }>) => {
@@ -186,23 +202,26 @@ export default function Navbar() {
     localStorage.setItem('notifications', JSON.stringify(updated));
   };
 
-  // Close notifications dropdown when clicking outside
+  // Close notifications and menu dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as Element;
       if (!target.closest('.notification-dropdown')) {
         setShowNotifications(false);
       }
+      if (!target.closest('.nav-menu-dropdown')) {
+        setShowMenu(false);
+      }
     };
 
-    if (showNotifications) {
+    if (showNotifications || showMenu) {
       document.addEventListener('mousedown', handleClickOutside);
     }
 
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [showNotifications]);
+  }, [showNotifications, showMenu]);
 
   useEffect(() => {
     localStorage.setItem('notifications', JSON.stringify(notifications.map((n: Notification) => ({
@@ -219,8 +238,72 @@ export default function Navbar() {
 
   return (
     <header className="h-16 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md border-b border-zinc-200 dark:border-zinc-800 sticky top-0 z-30 px-6 flex items-center justify-between">
-      <div className="flex-1 max-w-md hidden md:block">
-        <form onSubmit={handleSearch} className="relative group">
+      <div className="flex items-center gap-4">
+        <div className="relative nav-menu-dropdown">
+          <button 
+            onClick={() => setShowMenu(!showMenu)}
+            className="p-2 text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900 rounded-lg transition-colors flex items-center gap-2"
+          >
+            <Menu size={24} />
+            <div className="hidden sm:flex items-center gap-2 ml-2">
+              <div className="w-7 h-7 bg-emerald-500 rounded-lg flex items-center justify-center text-white font-bold text-sm">
+                S
+              </div>
+              <span className="font-bold text-lg tracking-tight dark:text-white">SpendWise</span>
+            </div>
+          </button>
+
+          {showMenu && (
+            <div className="absolute left-0 top-12 w-64 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2">
+              <nav className="flex flex-col p-3 space-y-1">
+                {navItems.map((item) => {
+                  const isActive = location.pathname === item.path || (item.path === '/' && location.pathname === '/dashboard');
+                  const isLogout = item.path === '/';
+                  
+                  if (isLogout) {
+                    return (
+                      <button
+                        key={item.path}
+                        onClick={async () => {
+                          setShowMenu(false);
+                          await logOut();
+                          localStorage.removeItem('userProfile');
+                          window.dispatchEvent(new CustomEvent('userProfileUpdated'));
+                          navigate('/login');
+                        }}
+                        className="flex items-center gap-3 p-3 rounded-xl transition-all duration-200 group w-full text-left text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                      >
+                        <item.icon size={18} className="group-hover:text-red-500" />
+                        <span className="font-medium text-sm">{item.label}</span>
+                      </button>
+                    );
+                  }
+                  
+                  return (
+                    <Link
+                      key={item.path}
+                      to={item.path}
+                      onClick={() => setShowMenu(false)}
+                      className={cn(
+                        "flex items-center gap-3 p-3 rounded-xl transition-all duration-200 group",
+                        isActive 
+                          ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/20" 
+                          : "text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                      )}
+                    >
+                      <item.icon size={18} className={cn(isActive ? "text-white" : "group-hover:text-emerald-500")} />
+                      <span className="font-medium text-sm">{item.label}</span>
+                    </Link>
+                  );
+                })}
+              </nav>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="flex-1 max-w-md hidden md:flex ml-6">
+        <form onSubmit={handleSearch} className="relative group w-full">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-emerald-500 transition-colors" size={18} />
           <input 
             type="text" 
