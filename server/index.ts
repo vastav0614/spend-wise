@@ -2,6 +2,7 @@ import 'dotenv/config';
 import { randomBytes, randomUUID, scrypt as scryptCallback, timingSafeEqual } from 'node:crypto';
 import { mkdirSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { DatabaseSync } from 'node:sqlite';
 import express from 'express';
 
@@ -168,9 +169,13 @@ app.use((error: unknown, _req: express.Request, res: express.Response, _next: ex
 });
 
 // Serve frontend static files in production
-app.use(express.static(resolve(process.cwd(), 'dist')));
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const distPath = resolve(__dirname, '../dist');
+
+app.use(express.static(distPath));
 app.get('*', (_req, res) => {
-  res.sendFile(resolve(process.cwd(), 'dist', 'index.html'));
+  res.sendFile(resolve(distPath, 'index.html'));
 });
 
 app.listen(port, '0.0.0.0', () => console.log(`SpendWise SQLite API running on http://0.0.0.0:${port}`));
