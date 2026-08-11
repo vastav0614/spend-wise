@@ -167,4 +167,10 @@ app.use((error: unknown, _req: express.Request, res: express.Response, _next: ex
   console.error('Unhandled API error', error); res.status(500).json({ message: 'Unexpected server error' });
 });
 
+// Serve frontend static files in production
+app.use(express.static(resolve(process.cwd(), 'dist')));
+app.get('*', (_req, res) => {
+  res.sendFile(resolve(process.cwd(), 'dist', 'index.html'));
+});
+
 app.listen(port, '0.0.0.0', () => console.log(`SpendWise SQLite API running on http://0.0.0.0:${port}`));
