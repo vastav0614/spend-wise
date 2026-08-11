@@ -102,6 +102,24 @@ app.post('/api/auth/google', asyncRoute(async (req, res) => {
   
   res.json({ token: createSession(user.id), user: { fullName: user.full_name, email: user.email } });
 }));
+app.post('/api/auth/github', asyncRoute(async (req, res) => {
+  const { email, fullName, githubId, username } = req.body as Record<string, unknown>;
+  const rawEmail = typeof email === 'string' && email.trim() ? email.trim() : `${username || githubId || 'github_user'}@github.com`;
+  const normalizedEmail = rawEmail.toLowerCase();
+  const safeName = typeof fullName === 'string' && fullName.trim() ? fullName.trim() : (username ? String(username) : normalizedEmail.split('@')[0]);
+
+  let user = db.prepare('SELECT * FROM users WHERE email = ?').get(normalizedEmail) as any;
+
+  if (!user) {
+    const salt = randomBytes(16).toString('hex');
+    const userId = randomUUID();
+    const passwordHash = await hashPassword(githubId ? String(githubId) : randomUUID(), salt);
+    db.prepare('INSERT INTO users (id, email, full_name, password_hash, password_salt) VALUES (?, ?, ?, ?, ?)').run(userId, normalizedEmail, safeName, passwordHash, salt);
+    user = { id: userId, email: normalizedEmail, full_name: safeName };
+  }
+
+  res.json({ token: createSession(user.id), user: { fullName: user.full_name, email: user.email } });
+}));
 app.post('/api/auth/logout', requireAuth, (req, res) => { const token = req.header('authorization')?.replace(/^Bearer\s+/i, ''); if (token) sessions.delete(token); res.status(204).send(); });
 app.use('/api', requireAuth);
 

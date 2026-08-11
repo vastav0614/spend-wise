@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Mail, Lock, User, ArrowRight, Phone, AlertCircle, Eye, EyeOff } from 'lucide-react';
+import { Mail, Lock, User, ArrowRight, Phone, AlertCircle, Eye, EyeOff, Github } from 'lucide-react';
 import { inferCurrencyFromPhoneNumber, saveUserProfile } from '../lib/userProfile';
 import { signUp } from '../lib/auth';
 import GoogleAuthModal, { GoogleIcon } from '../components/GoogleAuthModal';
+import GitHubAuthModal from '../components/GitHubAuthModal';
 
 export default function SignupPage() {
   const navigate = useNavigate();
@@ -11,6 +12,7 @@ export default function SignupPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isGoogleModalOpen, setIsGoogleModalOpen] = useState(false);
+  const [isGithubModalOpen, setIsGithubModalOpen] = useState(false);
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -186,19 +188,33 @@ export default function SignupPage() {
             </div>
           </div>
 
-          <button 
-            type="button"
-            onClick={() => setIsGoogleModalOpen(true)} 
-            className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-zinc-300 py-3 rounded-xl font-semibold hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-all flex items-center justify-center gap-3 shadow-sm"
-          >
-            <GoogleIcon size={20} /> Continue with Google
-          </button>
+          <div className="grid grid-cols-2 gap-3">
+            <button 
+              type="button"
+              onClick={() => setIsGoogleModalOpen(true)} 
+              className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-zinc-300 py-3 px-3 rounded-xl font-semibold hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-all flex items-center justify-center gap-2 text-xs shadow-sm"
+            >
+              <GoogleIcon size={18} /> Google
+            </button>
+            <button 
+              type="button"
+              onClick={() => setIsGithubModalOpen(true)} 
+              className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-zinc-300 py-3 px-3 rounded-xl font-semibold hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-all flex items-center justify-center gap-2 text-xs shadow-sm"
+            >
+              <Github size={18} /> GitHub
+            </button>
+          </div>
         </div>
 
         <GoogleAuthModal
           isOpen={isGoogleModalOpen}
           onClose={() => setIsGoogleModalOpen(false)}
           onSuccess={() => navigate('/dashboard')}
+        />
+
+        <GitHubAuthModal
+          isOpen={isGithubModalOpen}
+          onClose={() => setIsGithubModalOpen(false)}
         />
 
         <p className="text-center mt-8 text-zinc-500 dark:text-zinc-400">

@@ -73,6 +73,17 @@ export async function googleLogIn(email: string, fullName?: string, googleId?: s
   return session.user;
 }
 
+export async function githubLogIn(email?: string, fullName?: string, githubId?: string, username?: string) {
+  const session = await authRequest('/api/auth/github', { 
+    email: email || '', 
+    fullName: fullName || '', 
+    githubId: githubId || '',
+    username: username || ''
+  });
+  saveSession(session.token, session.user, true);
+  return session.user;
+}
+
 export async function logOut() {
   const token = getAuthToken();
   try {
