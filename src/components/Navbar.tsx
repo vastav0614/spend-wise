@@ -237,24 +237,20 @@ export default function Navbar() {
   };
 
   return (
-    <header className="h-16 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md border-b border-zinc-200 dark:border-zinc-800 sticky top-0 z-30 px-6 flex items-center justify-between">
-      <div className="flex items-center gap-4">
-        <div className="relative nav-menu-dropdown">
-          <button 
-            onClick={() => setShowMenu(!showMenu)}
-            className="p-2 text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900 rounded-lg transition-colors flex items-center gap-2"
-          >
-            <Menu size={24} />
-            <div className="hidden sm:flex items-center gap-2 ml-2">
-              <div className="w-7 h-7 bg-emerald-500 rounded-lg flex items-center justify-center text-white font-bold text-sm">
-                S
-              </div>
-              <span className="font-bold text-lg tracking-tight dark:text-white">SpendWise</span>
-            </div>
-          </button>
+    <div className="sticky top-0 z-30 flex flex-col w-full">
+      <header className="h-16 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md border-b border-zinc-200 dark:border-zinc-800 px-6 flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          {/* Mobile Menu Dropdown */}
+          <div className="relative nav-menu-dropdown lg:hidden">
+            <button 
+              onClick={() => setShowMenu(!showMenu)}
+              className="p-2 text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900 rounded-lg transition-colors flex items-center gap-2"
+            >
+              <Menu size={24} />
+            </button>
 
           {showMenu && (
-            <div className="absolute left-0 top-12 w-64 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2">
+            <div className="absolute left-0 top-12 w-64 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 lg:hidden">
               <nav className="flex flex-col p-3 space-y-1">
                 {navItems.map((item) => {
                   const isActive = location.pathname === item.path || (item.path === '/' && location.pathname === '/dashboard');
@@ -299,6 +295,13 @@ export default function Navbar() {
               </nav>
             </div>
           )}
+        </div>
+        {/* Desktop Logo */}
+        <div className="hidden lg:flex items-center gap-2">
+          <div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center text-white font-bold text-lg">
+            S
+          </div>
+          <span className="font-bold text-xl tracking-tight dark:text-white">SpendWise</span>
         </div>
       </div>
 
@@ -413,6 +416,51 @@ export default function Navbar() {
           <span className="text-sm font-medium dark:text-zinc-200 hidden sm:block">{profile.fullName}</span>
         </button>
       </div>
-    </header>
+      </header>
+
+      {/* Desktop Horizontal Sub-Navbar */}
+      <nav className="hidden lg:flex h-12 bg-[#4b5563] dark:bg-zinc-900 px-6 items-center justify-center overflow-x-auto shadow-sm">
+        <div className="flex items-center gap-1 mx-auto">
+          {navItems.map((item) => {
+            const isActive = location.pathname === item.path || (item.path === '/' && location.pathname === '/dashboard');
+            const isLogout = item.path === '/';
+            
+            if (isLogout) {
+              return (
+                <button
+                  key={item.path}
+                  onClick={async () => {
+                    await logOut();
+                    localStorage.removeItem('userProfile');
+                    window.dispatchEvent(new CustomEvent('userProfileUpdated'));
+                    navigate('/login');
+                  }}
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200 text-slate-300 hover:text-white hover:bg-white/10"
+                >
+                  <item.icon size={16} />
+                  <span className="text-sm font-medium tracking-wide">{item.label}</span>
+                </button>
+              );
+            }
+            
+            return (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={cn(
+                  "flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200",
+                  isActive 
+                    ? "text-white bg-white/10" 
+                    : "text-slate-300 hover:text-white hover:bg-white/10"
+                )}
+              >
+                <item.icon size={16} />
+                <span className="text-sm font-medium tracking-wide">{item.label}</span>
+              </Link>
+            );
+          })}
+        </div>
+      </nav>
+    </div>
   );
 }
