@@ -167,4 +167,4 @@ app.use((error: unknown, _req: express.Request, res: express.Response, _next: ex
   console.error('Unhandled API error', error); res.status(500).json({ message: 'Unexpected server error' });
 });
 
-app.listen(port, () => console.log(`SpendWise SQLite API running on http://127.0.0.1:${port}`));
+app.listen(port, '0.0.0.0', () => console.log(`SpendWise SQLite API running on http://0.0.0.0:${port}`));
