@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --port=3000 --host=0.0.0.0",
-    "server:dev": "tsx watch server/index.ts",
+    "server:dev": "tsx watch --ignore \"data/**\" server/index.ts",
     "dev:full": "concurrently \"npm run server:dev\" \"npm run dev\"",
     "start": "tsx server/index.ts",
     "build": "vite build",
