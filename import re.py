@@ -1,4 +1,7 @@
 import re
+import sys
+if sys.stdout.encoding != 'utf-8':
+    sys.stdout.reconfigure(encoding='utf-8')
 
 def parse_bank_message(message):
     # 1. Extract the Amount
