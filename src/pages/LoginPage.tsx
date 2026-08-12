@@ -35,9 +35,11 @@ export default function LoginPage() {
     <div className="min-h-[80vh] flex items-center justify-center animate-in fade-in duration-500 py-12">
       <div className="bg-white dark:bg-zinc-900 p-8 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-xl max-w-md w-full">
         <div className="text-center mb-8">
-          <div className="w-12 h-12 bg-emerald-500 rounded-2xl flex items-center justify-center mx-auto mb-4 text-white font-bold text-xl shadow-lg shadow-emerald-500/20">
-            $
-          </div>
+          <img 
+            src="/logo.png" 
+            alt="Spendwise Logo" 
+            className="w-16 h-16 rounded-2xl mx-auto mb-4 shadow-lg shadow-emerald-500/20 object-cover" 
+          />
           <h1 className="text-2xl font-bold dark:text-white">Welcome Back</h1>
           <p className="text-zinc-500 dark:text-zinc-400 mt-1">Sign in to your Spendwise account</p>
         </div>

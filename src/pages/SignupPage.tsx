@@ -58,7 +58,7 @@ export default function SignupPage() {
       <div className="w-full max-w-md">
         <div className="text-center mb-10">
           <Link to="/" className="inline-flex items-center gap-2 mb-8">
-            <div className="w-10 h-10 bg-emerald-500 rounded-xl flex items-center justify-center text-white font-bold text-xl">S</div>
+            <img src="/logo.png" alt="Spendwise" className="w-10 h-10 rounded-xl object-cover shadow-md shadow-emerald-500/20" />
             <span className="text-2xl font-bold tracking-tight dark:text-white">SpendWise</span>
           </Link>
           <h1 className="text-3xl font-bold dark:text-white mb-2">Create an account</h1>

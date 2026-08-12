@@ -298,9 +298,7 @@ export default function Navbar() {
         </div>
         {/* Desktop Logo */}
         <div className="hidden lg:flex items-center gap-2">
-          <div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center text-white font-bold text-lg">
-            S
-          </div>
+          <img src="/logo.png" alt="Spendwise" className="w-8 h-8 rounded-lg object-cover shadow-sm shadow-emerald-500/20" />
           <span className="font-bold text-xl tracking-tight dark:text-white">SpendWise</span>
         </div>
       </div>
