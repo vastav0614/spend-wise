@@ -14,7 +14,7 @@ const mongoUri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/spendwise
 const sessionLifetimeMs = 7 * 24 * 60 * 60 * 1000;
 const sessions = new Map<string, { userId: string; expiresAt: number }>();
 
-mongoose.connect(mongoUri)
+mongoose.connect(mongoUri, { tls: true, tlsAllowInvalidCertificates: true })
   .then(() => console.log('Connected to MongoDB'))
   .catch(err => console.error('MongoDB connection error:', err));
 

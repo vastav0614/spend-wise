@@ -13,7 +13,7 @@ console.log(`Connecting to SQLite at ${databasePath}...`);
 const db = new DatabaseSync(databasePath);
 
 console.log(`Connecting to MongoDB at ${mongoUri}...`);
-await mongoose.connect(mongoUri, { tlsAllowInvalidCertificates: true });
+await mongoose.connect(mongoUri, { tls: true, tlsAllowInvalidCertificates: true, serverSelectionTimeoutMS: 5000 });
 
 // Define Schemas
 const UserSchema = new mongoose.Schema({
