@@ -28,9 +28,12 @@ if (!rawMongoUri) {
 // Disable query buffering so operations fail fast if DB is disconnected instead of hanging 10s
 mongoose.set('bufferCommands', false);
 
-mongoose.connect(mongoUri, { serverSelectionTimeoutMS: 10000 })
+const dbConnectPromise = mongoose.connect(mongoUri, { serverSelectionTimeoutMS: 10000 })
   .then(() => console.log('Successfully connected to MongoDB'))
-  .catch(err => console.error('MongoDB connection error:', err));
+  .catch(err => {
+    console.error('MongoDB connection error:', err);
+    throw err;
+  });
 
 const UserSchema = new mongoose.Schema({
   id: { type: String, required: true, unique: true },
@@ -98,6 +101,18 @@ SavingsGoalSchema.index({ user_id: 1, id: 1 }, { unique: true });
 const SavingsGoalModel = mongoose.model('SavingsGoal', SavingsGoalSchema);
 
 app.use(express.json({ limit: '100kb' }));
+
+// Ensure MongoDB connection is fully established before executing any API endpoint
+app.use(async (req, _res, next) => {
+  if (req.path.startsWith('/api')) {
+    try {
+      await dbConnectPromise;
+    } catch (err) {
+      return next(err);
+    }
+  }
+  next();
+});
 
 type AuthenticatedRequest = express.Request & { userId?: string };
 type Expense = { id: string; amount: number; category: string; date: string; paymentMethod: string; notes: string };
