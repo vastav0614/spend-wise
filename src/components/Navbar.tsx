@@ -407,7 +407,7 @@ export default function Navbar() {
 
         <div className="h-8 w-px bg-zinc-200 dark:border-zinc-800 mx-2"></div>
 
-        <button className="flex items-center gap-2 p-1 pr-3 hover:bg-zinc-100 dark:hover:bg-zinc-900 rounded-full transition-colors">
+        <button onClick={() => navigate('/settings')} className="flex items-center gap-2 p-1 pr-3 hover:bg-zinc-100 dark:hover:bg-zinc-900 rounded-full transition-colors">
           <div className="w-8 h-8 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-full flex items-center justify-center">
             <User size={18} />
           </div>
