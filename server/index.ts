@@ -6,7 +6,11 @@ import express from 'express';
 import mongoose from 'mongoose';
 import dns from 'node:dns';
 
-dns.setServers(['8.8.8.8', '1.1.1.1']);
+try {
+  dns.setServers(['8.8.8.8', '1.1.1.1']);
+} catch (e) {
+  // Ignore DNS override errors on container environments like Render
+}
 
 const app = express();
 const port = Number(process.env.PORT || 4000);
@@ -14,8 +18,12 @@ const mongoUri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/spendwise
 const sessionLifetimeMs = 7 * 24 * 60 * 60 * 1000;
 const sessions = new Map<string, { userId: string; expiresAt: number }>();
 
-mongoose.connect(mongoUri, { tls: true, tlsAllowInvalidCertificates: true })
-  .then(() => console.log('Connected to MongoDB'))
+if (!process.env.MONGODB_URI) {
+  console.warn('WARNING: MONGODB_URI environment variable is not defined! Defaulting to local MongoDB.');
+}
+
+mongoose.connect(mongoUri, { tls: true, tlsAllowInvalidCertificates: true, serverSelectionTimeoutMS: 10000 })
+  .then(() => console.log('Successfully connected to MongoDB'))
   .catch(err => console.error('MongoDB connection error:', err));
 
 const UserSchema = new mongoose.Schema({
