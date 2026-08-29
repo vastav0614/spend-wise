@@ -36,14 +36,15 @@ const UserSchema = new mongoose.Schema({
 const User = mongoose.model('User', UserSchema);
 
 const ExpenseSchema = new mongoose.Schema({
-  user_id: { type: String, required: true, index: true },
-  id: { type: String, required: true, unique: true },
+  user_id: { type: String, required: true },
+  id: { type: String, required: true },
   amount_cents: { type: Number, required: true },
   category: { type: String, required: true },
   date: { type: String, required: true },
   payment_method: { type: String, required: true },
   notes: { type: String, default: '' }
 });
+ExpenseSchema.index({ user_id: 1, id: 1 }, { unique: true });
 const ExpenseModel = mongoose.model('Expense', ExpenseSchema);
 
 const BudgetSchema = new mongoose.Schema({
@@ -56,35 +57,38 @@ BudgetSchema.index({ user_id: 1, category: 1 }, { unique: true });
 const BudgetModel = mongoose.model('Budget', BudgetSchema);
 
 const IncomeSchema = new mongoose.Schema({
-  user_id: { type: String, required: true, index: true },
-  id: { type: String, required: true, unique: true },
+  user_id: { type: String, required: true },
+  id: { type: String, required: true },
   amount_cents: { type: Number, required: true },
   source: { type: String, required: true },
   date: { type: String, required: true },
   notes: { type: String, default: '' },
   recurrence: { type: String, enum: ['monthly', 'one_time'], required: true }
 });
+IncomeSchema.index({ user_id: 1, id: 1 }, { unique: true });
 const IncomeModel = mongoose.model('Income', IncomeSchema);
 
 const EmiPlanSchema = new mongoose.Schema({
-  user_id: { type: String, required: true, index: true },
-  id: { type: String, required: true, unique: true },
+  user_id: { type: String, required: true },
+  id: { type: String, required: true },
   name: { type: String, required: true },
   monthly_amount_cents: { type: Number, required: true },
   start_date: { type: String, required: true },
   duration_months: { type: Number, required: true }
 });
+EmiPlanSchema.index({ user_id: 1, id: 1 }, { unique: true });
 const EmiPlanModel = mongoose.model('EmiPlan', EmiPlanSchema);
 
 const SavingsGoalSchema = new mongoose.Schema({
-  user_id: { type: String, required: true, index: true },
-  id: { type: String, required: true, unique: true },
+  user_id: { type: String, required: true },
+  id: { type: String, required: true },
   name: { type: String, required: true },
   target_amount_cents: { type: Number, required: true },
   current_amount_cents: { type: Number, required: true },
   deadline: { type: String, required: true },
   priority: { type: String, enum: ['high', 'medium', 'low'], required: true }
 });
+SavingsGoalSchema.index({ user_id: 1, id: 1 }, { unique: true });
 const SavingsGoalModel = mongoose.model('SavingsGoal', SavingsGoalSchema);
 
 app.use(express.json({ limit: '100kb' }));
