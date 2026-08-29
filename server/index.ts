@@ -14,15 +14,21 @@ try {
 
 const app = express();
 const port = Number(process.env.PORT || 4000);
-const mongoUri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/spendwise';
+
+// Clean MONGODB_URI to remove surrounding quotes if entered into Render dashboard
+const rawMongoUri = process.env.MONGODB_URI?.trim().replace(/^["']|["']$/g, '');
+const mongoUri = rawMongoUri || 'mongodb://127.0.0.1:27017/spendwise';
 const sessionLifetimeMs = 7 * 24 * 60 * 60 * 1000;
 const sessions = new Map<string, { userId: string; expiresAt: number }>();
 
-if (!process.env.MONGODB_URI) {
+if (!rawMongoUri) {
   console.warn('WARNING: MONGODB_URI environment variable is not defined! Defaulting to local MongoDB.');
 }
 
-mongoose.connect(mongoUri, { tls: true, tlsAllowInvalidCertificates: true, serverSelectionTimeoutMS: 10000 })
+// Disable query buffering so operations fail fast if DB is disconnected instead of hanging 10s
+mongoose.set('bufferCommands', false);
+
+mongoose.connect(mongoUri, { serverSelectionTimeoutMS: 10000 })
   .then(() => console.log('Successfully connected to MongoDB'))
   .catch(err => console.error('MongoDB connection error:', err));
 
@@ -346,6 +352,11 @@ app.delete('/api/savings-goals/:id', asyncRoute(async (req: AuthenticatedRequest
 
 app.use((error: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   const rawMessage = error instanceof Error ? error.message : 'Unexpected server error';
+  if (/buffering timed out|MongooseServerSelectionError|MongoNetworkError|client has been closed/i.test(rawMessage)) {
+    console.error('Database connection error:', rawMessage);
+    res.status(503).json({ message: 'Database connection unavailable. Please check MONGODB_URI in your environment settings.' });
+    return;
+  }
   if (error instanceof SyntaxError || /required|valid|cannot|Invalid|exceed|positive|UNIQUE|constraint/i.test(rawMessage)) {
     const message = /UNIQUE constraint failed: users\.email/i.test(rawMessage) || /E11000 duplicate key error collection:.*index: email/i.test(rawMessage)
       ? 'An account with this email address already exists'
