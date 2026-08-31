@@ -129,20 +129,20 @@ export default function GoogleAuthModal({ isOpen, onClose, onSuccess }: GoogleAu
   };
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
-      <div className="bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-2xl max-w-md w-full overflow-hidden">
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
+      <div className="bg-zinc-950 rounded-3xl border border-zinc-800 shadow-2xl max-w-md w-full overflow-hidden text-zinc-100">
         {/* Header */}
-        <div className="p-6 border-b border-zinc-100 dark:border-zinc-800 flex items-center justify-between">
+        <div className="p-6 border-b border-zinc-800/80 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <GoogleIcon size={24} />
             <div>
-              <h3 className="font-bold text-lg dark:text-white">Google Accounts</h3>
-              <p className="text-xs text-zinc-500 dark:text-zinc-400">Select active account to sign in</p>
+              <h3 className="font-bold text-lg text-white">Google Accounts</h3>
+              <p className="text-xs text-zinc-400">Select active account to sign in</p>
             </div>
           </div>
           <button 
             onClick={onClose} 
-            className="p-2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+            className="p-2 text-zinc-400 hover:text-white rounded-full hover:bg-zinc-800 transition-colors"
           >
             <X size={20} />
           </button>
@@ -151,7 +151,7 @@ export default function GoogleAuthModal({ isOpen, onClose, onSuccess }: GoogleAu
         {/* Content */}
         <div className="p-6 space-y-4">
           {error && (
-            <div className="p-3 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800/60 rounded-xl text-red-600 dark:text-red-400 text-xs font-semibold">
+            <div className="p-3 bg-red-950/40 border border-red-800/50 rounded-xl text-red-400 text-xs font-semibold">
               {error}
             </div>
           )}
@@ -159,10 +159,10 @@ export default function GoogleAuthModal({ isOpen, onClose, onSuccess }: GoogleAu
           {/* Active Browser Google Account */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wider flex items-center gap-1.5">
-                <Sparkles size={14} className="text-amber-500" /> Active Google Account
+              <p className="text-xs font-semibold text-zinc-400 uppercase tracking-wider flex items-center gap-1.5">
+                <Sparkles size={14} className="text-amber-400" /> Active Google Account
               </p>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-950/60 text-emerald-400 border border-emerald-800/50">
                 Verified
               </span>
             </div>
@@ -171,23 +171,23 @@ export default function GoogleAuthModal({ isOpen, onClose, onSuccess }: GoogleAu
               type="button"
               disabled={isLoading}
               onClick={() => handleGoogleSignIn(googleEmail || 'user@gmail.com', googleName || 'Google User')}
-              className="w-full text-left p-4 rounded-2xl border-2 border-emerald-500/40 dark:border-emerald-500/40 bg-emerald-50/40 dark:bg-emerald-950/20 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 transition-all flex items-center justify-between group shadow-sm"
+              className="w-full text-left p-4 rounded-2xl border border-emerald-500/30 bg-emerald-950/20 hover:bg-emerald-950/40 transition-all flex items-center justify-between group shadow-sm"
             >
               <div className="flex items-center gap-3">
-                <div className="w-11 h-11 rounded-full bg-gradient-to-tr from-emerald-500 to-teal-400 text-white font-bold flex items-center justify-center text-lg shadow-md ring-2 ring-emerald-500/20">
+                <div className="w-11 h-11 rounded-full bg-gradient-to-tr from-emerald-500 to-teal-400 text-zinc-950 font-bold flex items-center justify-center text-lg shadow-md ring-2 ring-emerald-500/20">
                   {(googleName || 'G').charAt(0).toUpperCase()}
                 </div>
                 <div>
                   <div className="flex items-center gap-1.5">
-                    <p className="font-bold text-sm dark:text-white text-zinc-900">
+                    <p className="font-bold text-sm text-white">
                       {googleName || 'Google User'}
                     </p>
                     <GoogleIcon size={14} />
                   </div>
-                  <p className="text-xs text-zinc-600 dark:text-zinc-400 font-medium">{googleEmail || 'user@gmail.com'}</p>
+                  <p className="text-xs text-zinc-400 font-medium">{googleEmail || 'user@gmail.com'}</p>
                 </div>
               </div>
-              <div className="flex items-center gap-1 text-xs font-bold text-emerald-600 dark:text-emerald-400">
+              <div className="flex items-center gap-1 text-xs font-bold text-emerald-400">
                 <span>Sign in</span>
                 <Check size={16} />
               </div>
@@ -198,18 +198,18 @@ export default function GoogleAuthModal({ isOpen, onClose, onSuccess }: GoogleAu
           <button
             type="button"
             onClick={openGoogleOfficialPopup}
-            className="w-full p-3 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300 transition-all flex items-center justify-center gap-2 text-xs font-semibold"
+            className="w-full p-3 rounded-2xl border border-zinc-800 bg-zinc-900 hover:bg-zinc-800 text-zinc-200 transition-all flex items-center justify-center gap-2 text-xs font-semibold"
           >
-            <ExternalLink size={14} className="text-zinc-500" />
+            <ExternalLink size={14} className="text-zinc-400" />
             Open Official Google Sign-In Window
           </button>
 
           <div className="relative my-3">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-zinc-200 dark:border-zinc-800"></div>
+              <div className="w-full border-t border-zinc-800"></div>
             </div>
             <div className="relative flex justify-center text-xs">
-              <span className="px-2 bg-white dark:bg-zinc-900 text-zinc-400">or use another Google account</span>
+              <span className="px-2 bg-zinc-950 text-zinc-400">or use another Google account</span>
             </div>
           </div>
 
@@ -222,31 +222,31 @@ export default function GoogleAuthModal({ isOpen, onClose, onSuccess }: GoogleAu
             className="space-y-3"
           >
             <div>
-              <label className="block text-xs font-semibold dark:text-zinc-300 mb-1">Google Email</label>
+              <label className="block text-xs font-semibold text-zinc-300 mb-1">Google Email</label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" size={16} />
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" size={16} />
                 <input
                   type="email"
                   required
                   value={googleEmail}
                   onChange={(e) => setGoogleEmail(e.target.value)}
                   placeholder="your.email@gmail.com"
-                  className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl py-2.5 pl-9 pr-4 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all dark:text-white"
+                  className="w-full bg-zinc-900 border border-zinc-800 rounded-xl py-2.5 pl-9 pr-4 text-sm focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 outline-none transition-all text-zinc-100 placeholder-zinc-500 focus:bg-zinc-900"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold dark:text-zinc-300 mb-1">Full Name</label>
+              <label className="block text-xs font-semibold text-zinc-300 mb-1">Full Name</label>
               <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" size={16} />
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" size={16} />
                 <input
                   type="text"
                   required
                   value={googleName}
                   onChange={(e) => setGoogleName(e.target.value)}
                   placeholder="Your Name"
-                  className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl py-2.5 pl-9 pr-4 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all dark:text-white"
+                  className="w-full bg-zinc-900 border border-zinc-800 rounded-xl py-2.5 pl-9 pr-4 text-sm focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 outline-none transition-all text-zinc-100 placeholder-zinc-500 focus:bg-zinc-900"
                 />
               </div>
             </div>
@@ -254,7 +254,7 @@ export default function GoogleAuthModal({ isOpen, onClose, onSuccess }: GoogleAu
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 rounded-xl transition-all shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2 text-sm mt-2 disabled:opacity-50"
+              className="w-full bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-bold py-3 rounded-xl transition-all shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2 text-sm mt-2 disabled:opacity-50"
             >
               <GoogleIcon size={18} />
               {isLoading ? 'Signing in...' : 'Continue with Google Account'}
@@ -263,8 +263,8 @@ export default function GoogleAuthModal({ isOpen, onClose, onSuccess }: GoogleAu
         </div>
 
         {/* Footer info */}
-        <div className="p-4 bg-zinc-50 dark:bg-zinc-950/60 border-t border-zinc-100 dark:border-zinc-800/60 text-center text-xs text-zinc-400 flex items-center justify-center gap-1.5">
-          <ShieldCheck size={14} className="text-emerald-500" />
+        <div className="p-4 bg-zinc-900/60 border-t border-zinc-800/80 text-center text-xs text-zinc-400 flex items-center justify-center gap-1.5">
+          <ShieldCheck size={14} className="text-emerald-400" />
           <span>Protected with 256-bit secure Google OAuth session</span>
         </div>
       </div>

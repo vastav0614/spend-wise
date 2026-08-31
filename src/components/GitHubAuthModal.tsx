@@ -52,11 +52,11 @@ export default function GitHubAuthModal({ isOpen, onClose }: GitHubAuthModalProp
   };
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-300">
-      <div className="bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-2xl max-w-md w-full overflow-hidden">
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 p-4 animate-in fade-in duration-300">
+      <div className="bg-zinc-950 rounded-3xl border border-zinc-800 shadow-2xl max-w-md w-full overflow-hidden text-zinc-100">
         
         {/* Header */}
-        <div className="bg-zinc-950 p-6 text-white flex items-center justify-between border-b border-zinc-800">
+        <div className="bg-zinc-900 p-6 text-white flex items-center justify-between border-b border-zinc-800">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-zinc-800 flex items-center justify-center border border-zinc-700">
               <Github size={22} className="text-white" />
@@ -77,23 +77,23 @@ export default function GitHubAuthModal({ isOpen, onClose }: GitHubAuthModalProp
         {/* Body */}
         <div className="p-6 space-y-6">
           {error && (
-            <div className="p-4 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 rounded-2xl text-xs font-semibold text-red-600 dark:text-red-400">
+            <div className="p-4 bg-red-950/40 border border-red-800/50 rounded-2xl text-xs font-semibold text-red-400">
               {error}
             </div>
           )}
 
           {/* User Active Account Card */}
-          <div className="bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4 flex items-center justify-between">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-11 h-11 rounded-full bg-zinc-900 text-white font-bold flex items-center justify-center text-lg border border-zinc-700">
+              <div className="w-11 h-11 rounded-full bg-zinc-950 text-white font-bold flex items-center justify-center text-lg border border-zinc-800">
                 V
               </div>
               <div>
-                <p className="font-bold dark:text-white text-sm">vastav0614</p>
-                <p className="text-xs text-zinc-500 dark:text-zinc-400">vastav0614@github.com</p>
+                <p className="font-bold text-white text-sm">vastav0614</p>
+                <p className="text-xs text-zinc-400">vastav0614@github.com</p>
               </div>
             </div>
-            <span className="flex items-center gap-1 text-[11px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2.5 py-1 rounded-full">
+            <span className="flex items-center gap-1 text-[11px] font-bold text-emerald-400 bg-emerald-950/60 px-2.5 py-1 rounded-full border border-emerald-800/50">
               <CheckCircle2 size={13} /> Active
             </span>
           </div>
@@ -102,7 +102,7 @@ export default function GitHubAuthModal({ isOpen, onClose }: GitHubAuthModalProp
             <button
               onClick={() => handleGitHubAuth('vastav0614', 'Vastav', 'vastav0614@github.com')}
               disabled={loading}
-              className="w-full bg-zinc-900 hover:bg-black dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-900 py-3.5 px-4 rounded-2xl font-bold transition-all shadow-lg flex items-center justify-center gap-3"
+              className="w-full bg-zinc-800 hover:bg-zinc-700 text-white py-3.5 px-4 rounded-2xl font-bold transition-all shadow-lg flex items-center justify-center gap-3 border border-zinc-700"
             >
               <Github size={20} />
               {loading ? 'Authenticating with GitHub...' : 'Continue as vastav0614'}
@@ -110,14 +110,14 @@ export default function GitHubAuthModal({ isOpen, onClose }: GitHubAuthModalProp
 
             <button
               onClick={handleOpenGitHubOAuthWindow}
-              className="w-full bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-200 py-3 px-4 rounded-2xl font-semibold transition-all text-xs flex items-center justify-center gap-2"
+              className="w-full bg-zinc-900 hover:bg-zinc-800 text-zinc-300 py-3 px-4 rounded-2xl font-semibold transition-all text-xs flex items-center justify-center gap-2 border border-zinc-800"
             >
               <ExternalLink size={14} /> Open Official GitHub Sign-In Window
             </button>
           </div>
 
-          <div className="pt-2 border-t border-zinc-100 dark:border-zinc-800 text-center flex items-center justify-center gap-1.5 text-[11px] text-zinc-400 font-medium">
-            <ShieldCheck size={14} className="text-emerald-500" />
+          <div className="pt-2 border-t border-zinc-800 text-center flex items-center justify-center gap-1.5 text-[11px] text-zinc-400 font-medium">
+            <ShieldCheck size={14} className="text-emerald-400" />
             <span>Secure 256-bit OAuth SSL Session Token</span>
           </div>
         </div>
