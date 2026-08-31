@@ -58,11 +58,13 @@ export default function SavingsPage() {
     try {
       const loadedGoals = await getSavingsGoals();
       setGoals(loadedGoals.length > 0 ? loadedGoals : []);
-      setPreviousSavingsPool(calculatePreviousSavingsPool());
+      const pool = await calculatePreviousSavingsPool();
+      setPreviousSavingsPool(pool);
     } catch (e) {
       console.warn('Load goals fallback:', e);
       setGoals([]);
-      setPreviousSavingsPool(calculatePreviousSavingsPool());
+      const pool = await calculatePreviousSavingsPool();
+      setPreviousSavingsPool(pool);
     }
   };
 
@@ -148,13 +150,31 @@ export default function SavingsPage() {
 
     try {
       await updateSavingsGoal(updatedGoal);
-      setGoals((currentGoals) =>
-        currentGoals.map((goal) => (goal.id === updatedGoal.id ? updatedGoal : goal)),
-      );
+      await loadGoalsAndSavings();
       setSelectedGoal(null);
       setSavingsAmount('');
     } catch {
       alert('Failed to add savings. Please try again.');
+    }
+  };
+
+  const handleApplyAutoAllocated = async (goal: SavingsGoalWithAllocation) => {
+    if (!goal.autoAllocatedAmount || goal.autoAllocatedAmount <= 0) return;
+    const newAmount = Math.min(goal.currentAmount + goal.autoAllocatedAmount, goal.targetAmount);
+    const updatedGoal: SavingsGoal = {
+      id: goal.id,
+      name: goal.name,
+      targetAmount: goal.targetAmount,
+      currentAmount: newAmount,
+      deadline: goal.deadline,
+      priority: goal.priority,
+    };
+
+    try {
+      await updateSavingsGoal(updatedGoal);
+      await loadGoalsAndSavings();
+    } catch {
+      alert('Failed to apply auto-allocated savings to goal.');
     }
   };
 
@@ -378,12 +398,21 @@ export default function SavingsPage() {
                     </div>
 
                     {autoAllocated > 0 && (
-                      <div className="p-3 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 rounded-xl text-xs font-semibold text-emerald-700 dark:text-emerald-300 flex items-center justify-between">
+                      <div className="p-3 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 rounded-xl text-xs font-semibold text-emerald-700 dark:text-emerald-300 flex items-center justify-between gap-2">
                         <span className="flex items-center gap-1.5">
-                          <Sparkles size={14} className="text-emerald-500" />
+                          <Sparkles size={14} className="text-emerald-500 flex-shrink-0" />
                           Auto-Allocated Past Savings:
                         </span>
-                        <span className="font-bold">+{formatCurrency(autoAllocated, userProfile)}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold">+{formatCurrency(autoAllocated, userProfile)}</span>
+                          <button
+                            onClick={() => handleApplyAutoAllocated(goal)}
+                            className="px-2.5 py-1 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg font-bold text-[11px] transition-all shadow-sm flex items-center gap-1"
+                            title="Add this auto-allocated past savings amount directly to goal saved total"
+                          >
+                            <Plus size={12} /> Apply to Goal
+                          </button>
+                        </div>
                       </div>
                     )}
 
@@ -420,47 +449,60 @@ export default function SavingsPage() {
         </div>
       )}
 
-      {selectedGoal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-6">
-          <div className="bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-2xl max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b border-zinc-200 dark:border-zinc-700">
-              <h2 className="text-2xl font-bold dark:text-white">Add to {selectedGoal.name}</h2>
-              <p className="text-zinc-500 dark:text-zinc-400 mt-1">Remaining: {formatCurrency(selectedGoal.targetAmount - selectedGoal.currentAmount, userProfile)}</p>
+      {selectedGoal && (() => {
+        const selectedAllocatedGoal = allocatedGoals.find((g) => g.id === selectedGoal.id);
+        const autoAllocatedAmount = selectedAllocatedGoal?.autoAllocatedAmount || 0;
+        return (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-6">
+            <div className="bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-2xl max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto">
+              <div className="p-6 border-b border-zinc-200 dark:border-zinc-700">
+                <h2 className="text-2xl font-bold dark:text-white">Add to {selectedGoal.name}</h2>
+                <p className="text-zinc-500 dark:text-zinc-400 mt-1">Remaining: {formatCurrency(selectedGoal.targetAmount - selectedGoal.currentAmount, userProfile)}</p>
+              </div>
+              <form onSubmit={handleAddSavings} className="p-6 space-y-6">
+                <div>
+                  <label className="block text-sm font-semibold dark:text-zinc-300 mb-2">Amount to Add</label>
+                  <input
+                    type="number"
+                    required
+                    min="0.01"
+                    step="0.01"
+                    value={savingsAmount}
+                    onChange={(e) => setSavingsAmount(e.target.value)}
+                    placeholder="250"
+                    className="w-full p-4 border border-zinc-200 dark:border-zinc-700 rounded-2xl bg-zinc-50 dark:bg-zinc-800 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 dark:text-white text-lg"
+                  />
+                  {autoAllocatedAmount > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setSavingsAmount(autoAllocatedAmount.toString())}
+                      className="text-xs bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-300 px-3 py-1.5 rounded-lg border border-emerald-300 dark:border-emerald-700 font-semibold hover:bg-emerald-100 transition-all flex items-center gap-1 mt-2.5"
+                    >
+                      <Sparkles size={12} /> Use Auto-Allocated Past Savings (+{formatCurrency(autoAllocatedAmount, userProfile)})
+                    </button>
+                  )}
+                </div>
+                <div className="flex gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedGoal(null)}
+                    className="flex-1 px-6 py-3 border border-zinc-200 dark:border-zinc-700 rounded-2xl font-semibold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-all"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white py-3 rounded-2xl font-bold shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2 text-lg"
+                  >
+                    <Plus size={20} />
+                    Add Savings
+                  </button>
+                </div>
+              </form>
             </div>
-            <form onSubmit={handleAddSavings} className="p-6 space-y-6">
-              <div>
-                <label className="block text-sm font-semibold dark:text-zinc-300 mb-2">Amount to Add</label>
-                <input
-                  type="number"
-                  required
-                  min="0.01"
-                  step="0.01"
-                  value={savingsAmount}
-                  onChange={(e) => setSavingsAmount(e.target.value)}
-                  placeholder="250"
-                  className="w-full p-4 border border-zinc-200 dark:border-zinc-700 rounded-2xl bg-zinc-50 dark:bg-zinc-800 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 dark:text-white text-lg"
-                />
-              </div>
-              <div className="flex gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setSelectedGoal(null)}
-                  className="flex-1 px-6 py-3 border border-zinc-200 dark:border-zinc-700 rounded-2xl font-semibold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-all"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white py-3 rounded-2xl font-bold shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2 text-lg"
-                >
-                  <Plus size={20} />
-                  Add Savings
-                </button>
-              </div>
-            </form>
           </div>
-        </div>
-      )}
+        );
+      })()}
     </div>
   );
 }

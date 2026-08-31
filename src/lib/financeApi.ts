@@ -403,10 +403,40 @@ export async function getSavingsGoals(): Promise<SavingsGoal[]> {
 }
 
 
-export function calculatePreviousSavingsPool(): number {
-  const expenses = readLocalArray<Expense>(EXPENSES_KEY);
-  const storedIncome = readLocalArray<IncomeEntry>(INCOME_KEY);
-  const storedEmis = readLocalArray<EMIPlan>(EMI_KEY);
+function parseMonthKey(dateString?: string): string {
+  if (!dateString) return '1970-01';
+  const clean = dateString.split('T')[0];
+  const parts = clean.split('-');
+  if (parts.length >= 2) {
+    return `${parts[0]}-${parts[1].padStart(2, '0')}`;
+  }
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return '1970-01';
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+}
+
+export async function calculatePreviousSavingsPool(): Promise<number> {
+  let expenses: Expense[];
+  let storedIncome: IncomeEntry[];
+  let storedEmis: EMIPlan[];
+
+  try {
+    expenses = await getExpenses();
+  } catch {
+    expenses = readLocalArray<Expense>(EXPENSES_KEY);
+  }
+
+  try {
+    storedIncome = await getIncomeEntries();
+  } catch {
+    storedIncome = readLocalArray<IncomeEntry>(INCOME_KEY);
+  }
+
+  try {
+    storedEmis = await getEmiPlans();
+  } catch {
+    storedEmis = readLocalArray<EMIPlan>(EMI_KEY);
+  }
 
   const emiInstallments = storedEmis.flatMap((plan) => {
     if (!plan.startDate || !plan.durationMonths || !plan.monthlyAmount) return [];
@@ -430,13 +460,13 @@ export function calculatePreviousSavingsPool(): number {
   const currentMonthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
   const allExpenses = [...expenses, ...emiInstallments];
 
-  const pastIncomes = storedIncome.filter((inc) => inc.date && inc.date.slice(0, 7) < currentMonthKey);
-  const pastExpenses = allExpenses.filter((exp) => exp.date && exp.date.slice(0, 7) < currentMonthKey);
+  const pastIncomes = storedIncome.filter((inc) => inc.date && parseMonthKey(inc.date) < currentMonthKey);
+  const pastExpenses = allExpenses.filter((exp) => exp.date && parseMonthKey(exp.date) < currentMonthKey);
 
   const pastIncomeTotal = pastIncomes.reduce((sum, inc) => sum + (Number(inc.amount) || 0), 0);
   const pastExpenseTotal = pastExpenses.reduce((sum, exp) => sum + (Number(exp.amount) || 0), 0);
 
-  return Math.round((pastIncomeTotal - pastExpenseTotal + Number.EPSILON) * 100) / 100;
+  return Math.max(0, Math.round((pastIncomeTotal - pastExpenseTotal + Number.EPSILON) * 100) / 100);
 }
 
 export interface SavingsGoalWithAllocation extends SavingsGoal {
