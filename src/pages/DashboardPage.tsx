@@ -110,6 +110,7 @@ export default function DashboardPage() {
   const [userProfile, setUserProfile] = useState(getStoredUserProfile);
   const navigate = useNavigate();
   const [previousSavings, setPreviousSavings] = useState(0);
+  const [totalAvailableBalance, setTotalAvailableBalance] = useState(0);
   const [totalExpenses, setTotalExpenses] = useState(0);
   const [totalIncome, setTotalIncome] = useState(0);
   const [totalBudget, setTotalBudget] = useState(0);
@@ -170,8 +171,14 @@ export default function DashboardPage() {
     const pastExpenses = allExpenses.filter((exp: any) => getMonthKey(exp.date) < currentMonthKey);
     const pastIncomeTotal = pastIncomes.reduce((sum: number, inc: IncomeEntry) => sum + (inc.amount || 0), 0);
     const pastExpenseTotal = pastExpenses.reduce((sum: number, exp: any) => sum + (exp.amount || 0), 0);
-    const calcPreviousSavings = Math.max(0, Math.round((pastIncomeTotal - pastExpenseTotal + Number.EPSILON) * 100) / 100);
+    const calcPreviousSavings = Math.round((pastIncomeTotal - pastExpenseTotal + Number.EPSILON) * 100) / 100;
     setPreviousSavings(calcPreviousSavings);
+
+    // Calculate total all-time available balance (All Income - All Expenses)
+    const allTimeIncomeTotal = storedIncome.reduce((sum: number, inc: IncomeEntry) => sum + (inc.amount || 0), 0);
+    const allTimeExpenseTotal = allExpenses.reduce((sum: number, exp: any) => sum + (exp.amount || 0), 0);
+    const calcTotalAvailableBalance = Math.round((allTimeIncomeTotal - allTimeExpenseTotal + Number.EPSILON) * 100) / 100;
+    setTotalAvailableBalance(calcTotalAvailableBalance);
 
     const filtered = allExpenses.filter((exp: any) => {
       const matchesSearch =
@@ -442,9 +449,6 @@ export default function DashboardPage() {
     await loadData();
   };
 
-  const netCurrentMonthBalance = totalIncome - totalExpenses;
-  const totalAvailableBalance = netCurrentMonthBalance;
-
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
       <div className="space-y-4">
@@ -551,7 +555,7 @@ export default function DashboardPage() {
           title="Previous Savings"
           amount={formatCurrency(previousSavings, userProfile)}
           change="Rollover from past months"
-          isPositive
+          isPositive={previousSavings >= 0}
           icon={<PiggyBank className="text-teal-500" />}
           color="emerald"
         />
@@ -574,7 +578,7 @@ export default function DashboardPage() {
         <StatCard
           title="Total Available Balance"
           amount={formatCurrency(totalAvailableBalance, userProfile)}
-          change={totalAvailableBalance >= 0 ? 'Surplus for this month' : 'Deficit for this month'}
+          change={totalAvailableBalance >= 0 ? 'Total net available balance' : 'Net account deficit'}
           isPositive={totalAvailableBalance >= 0}
           icon={<ArrowUpRight className="text-purple-500" />}
           color="purple"

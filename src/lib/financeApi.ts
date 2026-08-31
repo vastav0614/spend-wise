@@ -436,7 +436,7 @@ export function calculatePreviousSavingsPool(): number {
   const pastIncomeTotal = pastIncomes.reduce((sum, inc) => sum + (Number(inc.amount) || 0), 0);
   const pastExpenseTotal = pastExpenses.reduce((sum, exp) => sum + (Number(exp.amount) || 0), 0);
 
-  return Math.max(0, Math.round((pastIncomeTotal - pastExpenseTotal + Number.EPSILON) * 100) / 100);
+  return Math.round((pastIncomeTotal - pastExpenseTotal + Number.EPSILON) * 100) / 100;
 }
 
 export interface SavingsGoalWithAllocation extends SavingsGoal {
