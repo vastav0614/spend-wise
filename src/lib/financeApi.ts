@@ -415,7 +415,56 @@ function parseMonthKey(dateString?: string): string {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
 }
 
-export async function calculatePreviousSavingsPool(): Promise<number> {
+function toLocalYYYYMMDD(date: Date): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
+function addMonthsToDate(dateString: string, monthsToAdd: number): string {
+  const cleanDate = dateString.split('T')[0];
+  const date = new Date(cleanDate);
+  if (isNaN(date.getTime())) return dateString;
+  const day = date.getDate();
+  const nextDate = new Date(date.getFullYear(), date.getMonth() + monthsToAdd, 1);
+  const maxDays = new Date(nextDate.getFullYear(), nextDate.getMonth() + 1, 0).getDate();
+  nextDate.setDate(Math.min(day, maxDays));
+  return toLocalYYYYMMDD(nextDate);
+}
+
+export function getEmiInstallments(emiPlans: EMIPlan[]): Expense[] {
+  const today = new Date();
+  return emiPlans.flatMap((plan) => {
+    if (!plan.startDate || !plan.durationMonths || !plan.monthlyAmount) return [];
+    const installments: Expense[] = [];
+
+    for (let i = 0; i < plan.durationMonths; i++) {
+      const installmentDate = addMonthsToDate(plan.startDate, i);
+      if (new Date(installmentDate) > today) {
+        break;
+      }
+      installments.push({
+        id: `emi-${plan.id}-${i + 1}`,
+        amount: plan.monthlyAmount,
+        category: 'EMI',
+        date: installmentDate,
+        paymentMethod: 'Auto Debit',
+        notes: `EMI: ${plan.name} (${i + 1}/${plan.durationMonths})`,
+      });
+    }
+
+    return installments;
+  });
+}
+
+export interface PreviousSavingsDetails {
+  pastIncomeTotal: number;
+  pastExpenseTotal: number;
+  previousSavingsPool: number;
+}
+
+export async function calculatePreviousSavingsDetails(): Promise<PreviousSavingsDetails> {
   let expenses: Expense[];
   let storedIncome: IncomeEntry[];
   let storedEmis: EMIPlan[];
@@ -438,24 +487,7 @@ export async function calculatePreviousSavingsPool(): Promise<number> {
     storedEmis = readLocalArray<EMIPlan>(EMI_KEY);
   }
 
-  const emiInstallments = storedEmis.flatMap((plan) => {
-    if (!plan.startDate || !plan.durationMonths || !plan.monthlyAmount) return [];
-    const installments: Expense[] = [];
-    const [year, month] = plan.startDate.split('-').map(Number);
-    for (let i = 0; i < plan.durationMonths; i++) {
-      const date = new Date(year, month - 1 + i, 1);
-      installments.push({
-        id: `emi-${plan.id}-${i}`,
-        amount: plan.monthlyAmount,
-        category: 'EMI',
-        date: date.toISOString().split('T')[0],
-        paymentMethod: 'EMI',
-        notes: plan.name,
-      });
-    }
-    return installments;
-  });
-
+  const emiInstallments = getEmiInstallments(storedEmis);
   const now = new Date();
   const currentMonthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
   const allExpenses = [...expenses, ...emiInstallments];
@@ -463,10 +495,22 @@ export async function calculatePreviousSavingsPool(): Promise<number> {
   const pastIncomes = storedIncome.filter((inc) => inc.date && parseMonthKey(inc.date) < currentMonthKey);
   const pastExpenses = allExpenses.filter((exp) => exp.date && parseMonthKey(exp.date) < currentMonthKey);
 
-  const pastIncomeTotal = pastIncomes.reduce((sum, inc) => sum + (Number(inc.amount) || 0), 0);
-  const pastExpenseTotal = pastExpenses.reduce((sum, exp) => sum + (Number(exp.amount) || 0), 0);
+  const pastIncomeTotal = Math.round((pastIncomes.reduce((sum, inc) => sum + (Number(inc.amount) || 0), 0) + Number.EPSILON) * 100) / 100;
+  const pastExpenseTotal = Math.round((pastExpenses.reduce((sum, exp) => sum + (Number(exp.amount) || 0), 0) + Number.EPSILON) * 100) / 100;
 
-  return Math.max(0, Math.round((pastIncomeTotal - pastExpenseTotal + Number.EPSILON) * 100) / 100);
+  const rawPool = Math.round((pastIncomeTotal - pastExpenseTotal + Number.EPSILON) * 100) / 100;
+  const previousSavingsPool = Math.max(0, rawPool);
+
+  return {
+    pastIncomeTotal,
+    pastExpenseTotal,
+    previousSavingsPool,
+  };
+}
+
+export async function calculatePreviousSavingsPool(): Promise<number> {
+  const details = await calculatePreviousSavingsDetails();
+  return details.previousSavingsPool;
 }
 
 export interface SavingsGoalWithAllocation extends SavingsGoal {

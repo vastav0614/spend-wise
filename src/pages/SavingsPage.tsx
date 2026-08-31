@@ -8,8 +8,10 @@ import {
   updateSavingsGoal, 
   deleteSavingsGoal, 
   calculatePreviousSavingsPool, 
+  calculatePreviousSavingsDetails,
   allocatePreviousSavingsToGoals, 
-  type SavingsGoalWithAllocation 
+  type SavingsGoalWithAllocation,
+  type PreviousSavingsDetails
 } from '../lib/financeApi';
 
 type FormData = {
@@ -42,6 +44,11 @@ export default function SavingsPage() {
   const [userProfile, setUserProfile] = useState(getStoredUserProfile);
   const [goals, setGoals] = useState<SavingsGoal[]>([]);
   const [previousSavingsPool, setPreviousSavingsPool] = useState(0);
+  const [previousSavingsDetails, setPreviousSavingsDetails] = useState<PreviousSavingsDetails>({
+    pastIncomeTotal: 0,
+    pastExpenseTotal: 0,
+    previousSavingsPool: 0,
+  });
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingGoal, setEditingGoal] = useState<SavingsGoal | null>(null);
   const [formData, setFormData] = useState<FormData>(emptyForm);
@@ -58,13 +65,15 @@ export default function SavingsPage() {
     try {
       const loadedGoals = await getSavingsGoals();
       setGoals(loadedGoals.length > 0 ? loadedGoals : []);
-      const pool = await calculatePreviousSavingsPool();
-      setPreviousSavingsPool(pool);
+      const details = await calculatePreviousSavingsDetails();
+      setPreviousSavingsDetails(details);
+      setPreviousSavingsPool(details.previousSavingsPool);
     } catch (e) {
       console.warn('Load goals fallback:', e);
       setGoals([]);
-      const pool = await calculatePreviousSavingsPool();
-      setPreviousSavingsPool(pool);
+      const details = await calculatePreviousSavingsDetails();
+      setPreviousSavingsDetails(details);
+      setPreviousSavingsPool(details.previousSavingsPool);
     }
   };
 
@@ -205,18 +214,22 @@ export default function SavingsPage() {
           </div>
           <h2 className="text-2xl md:text-3xl font-bold">Past Savings Pool: {formatCurrency(previousSavingsPool, userProfile)}</h2>
           <p className="text-emerald-100 text-sm max-w-xl">
-            Unspent savings from previous months automatically flow to your <strong>Primary (High Priority)</strong> goal. When filled to 100%, remaining funds automatically flow to Medium and Low priority goals!
+            Calculated as Past Income ({formatCurrency(previousSavingsDetails.pastIncomeTotal, userProfile)}) minus Previous Expenses ({formatCurrency(previousSavingsDetails.pastExpenseTotal, userProfile)}). Unspent savings automatically flow to High Priority goals first!
           </p>
         </div>
 
-        <div className="grid grid-cols-2 gap-4 bg-white/10 p-4 rounded-2xl border border-white/10 w-full lg:w-auto">
+        <div className="grid grid-cols-3 gap-3 bg-white/10 p-4 rounded-2xl border border-white/10 w-full lg:w-auto text-center">
           <div>
-            <p className="text-xs text-emerald-200 uppercase font-semibold">Auto-Allocated</p>
-            <p className="text-xl font-bold text-white">+{formatCurrency(totalAllocated, userProfile)}</p>
+            <p className="text-[11px] text-emerald-200 uppercase font-semibold">Prev. Expenses</p>
+            <p className="text-lg font-bold text-red-200">-{formatCurrency(previousSavingsDetails.pastExpenseTotal, userProfile)}</p>
           </div>
           <div>
-            <p className="text-xs text-emerald-200 uppercase font-semibold">Unallocated Buffer</p>
-            <p className="text-xl font-bold text-emerald-200">{formatCurrency(unallocatedRemaining, userProfile)}</p>
+            <p className="text-[11px] text-emerald-200 uppercase font-semibold">Auto-Allocated</p>
+            <p className="text-lg font-bold text-white">+{formatCurrency(totalAllocated, userProfile)}</p>
+          </div>
+          <div>
+            <p className="text-[11px] text-emerald-200 uppercase font-semibold">Unallocated Buffer</p>
+            <p className="text-lg font-bold text-emerald-200">{formatCurrency(unallocatedRemaining, userProfile)}</p>
           </div>
         </div>
       </div>
