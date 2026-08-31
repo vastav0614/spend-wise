@@ -32,7 +32,20 @@ import type { EMIPlan, IncomeEntry } from '../types';
 import { formatCurrency, getStoredUserProfile } from '../lib/userProfile';
 import { createEmiPlan, deleteEmiPlan, getBudgets, getEmiPlans, getExpenses, getIncomeEntries } from '../lib/financeApi';
 
-const COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#6366f1'];
+const COLORS = [
+  '#10b981', // emerald
+  '#3b82f6', // blue
+  '#f59e0b', // amber
+  '#ef4444', // red
+  '#8b5cf6', // purple
+  '#06b6d4', // cyan
+  '#ec4899', // pink
+  '#f97316', // orange
+  '#6366f1', // indigo
+  '#14b8a6', // teal
+  '#a855f7', // violet
+  '#84cc16', // lime
+];
 
 const emptyEmiForm = {
   name: '',
@@ -306,10 +319,12 @@ export default function DashboardPage() {
       categoryMap.set(exp.category, current + exp.amount);
     });
 
-    const categoryBreakdown = Array.from(categoryMap.entries()).map(([name, value]) => ({
-      name,
-      value: parseFloat(value.toFixed(2)),
-    }));
+    const categoryBreakdown = Array.from(categoryMap.entries())
+      .map(([name, value]) => ({
+        name,
+        value: parseFloat((Number(value) || 0).toFixed(2)),
+      }))
+      .sort((a, b) => b.value - a.value);
     setCategoryData(categoryBreakdown);
 
     const monthlyMap = new Map();
@@ -679,32 +694,76 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-zinc-900 p-6 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
-          <h3 className="font-bold dark:text-white mb-8">Category Breakdown</h3>
+        <div className="bg-white dark:bg-zinc-900 p-6 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-sm flex flex-col justify-between">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="font-bold dark:text-white">Category Breakdown</h3>
+            <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400">
+              {categoryData.length} Categor{categoryData.length === 1 ? 'y' : 'ies'}
+            </span>
+          </div>
+
           {categoryData.length > 0 ? (
-            <div className="h-[300px] w-full flex items-center">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie data={categoryData} cx="50%" cy="50%" innerRadius={60} outerRadius={100} paddingAngle={5} dataKey="value">
-                    {categoryData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
-              </ResponsiveContainer>
-              <div className="space-y-3 pr-4">
-                {categoryData.slice(0, 4).map((item, i) => (
-                  <div key={item.name} className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full" style={{ backgroundColor: COLORS[i] }}></div>
-                    <span className="text-xs font-medium dark:text-zinc-400">{item.name}</span>
-                  </div>
-                ))}
+            <div className="flex flex-col sm:flex-row items-center gap-6">
+              <div className="h-[240px] w-full sm:w-1/2 relative flex items-center justify-center">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={categoryData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={90}
+                      paddingAngle={4}
+                      dataKey="value"
+                    >
+                      {categoryData.map((_entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} stroke="transparent" />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      formatter={(value: any) => [formatCurrency(Number(value) || 0, userProfile), 'Spent']}
+                      contentStyle={{
+                        backgroundColor: 'rgba(24, 24, 27, 0.95)',
+                        borderColor: '#3f3f46',
+                        borderRadius: '12px',
+                        color: '#fff',
+                        fontSize: '12px',
+                      }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+                {/* Donut Center Summary */}
+                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none text-center">
+                  <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Total</span>
+                  <span className="text-sm font-extrabold dark:text-white mt-0.5">
+                    {formatCurrency(categoryData.reduce((s, i) => s + i.value, 0), userProfile)}
+                  </span>
+                </div>
+              </div>
+
+              {/* Complete Category Legend */}
+              <div className="w-full sm:w-1/2 max-h-[240px] overflow-y-auto pr-1 space-y-2">
+                {categoryData.map((item, i) => {
+                  const totalVal = categoryData.reduce((s, it) => s + it.value, 0);
+                  const percent = totalVal > 0 ? Math.round((item.value / totalVal) * 100) : 0;
+                  return (
+                    <div key={item.name} className="flex items-center justify-between text-xs p-2 rounded-xl bg-zinc-50 dark:bg-zinc-800/40 border border-zinc-100 dark:border-zinc-800/60 hover:border-zinc-300 dark:hover:border-zinc-700 transition-colors">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <div className="w-2.5 h-2.5 rounded-full shrink-0 shadow-sm" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
+                        <span className="font-semibold dark:text-zinc-200 truncate">{item.name}</span>
+                      </div>
+                      <div className="text-right shrink-0 ml-2">
+                        <span className="font-bold dark:text-white block">{formatCurrency(item.value, userProfile)}</span>
+                        <span className="text-[10px] font-medium text-zinc-400">{percent}%</span>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           ) : (
-            <div className="h-[300px] w-full flex items-center justify-center">
-              <p className="text-zinc-500 dark:text-zinc-400">No expenses yet. Start adding expenses or EMI to see the breakdown.</p>
+            <div className="h-[240px] w-full flex items-center justify-center">
+              <p className="text-zinc-500 dark:text-zinc-400 text-sm">No expense data available for category breakdown.</p>
             </div>
           )}
         </div>
