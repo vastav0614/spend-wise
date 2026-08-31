@@ -187,11 +187,7 @@ export default function DashboardPage() {
     const calcPreviousSavings = Math.round((pastIncomeTotal - pastExpenseTotal + Number.EPSILON) * 100) / 100;
     setPreviousSavings(calcPreviousSavings);
 
-    // Calculate total all-time available balance (All Income - All Expenses)
-    const allTimeIncomeTotal = storedIncome.reduce((sum: number, inc: IncomeEntry) => sum + (inc.amount || 0), 0);
-    const allTimeExpenseTotal = allExpenses.reduce((sum: number, exp: any) => sum + (exp.amount || 0), 0);
-    const calcTotalAvailableBalance = Math.round((allTimeIncomeTotal - allTimeExpenseTotal + Number.EPSILON) * 100) / 100;
-    setTotalAvailableBalance(calcTotalAvailableBalance);
+
 
     const filtered = allExpenses.filter((exp: any) => {
       const matchesSearch =
@@ -307,6 +303,10 @@ export default function DashboardPage() {
     const incomeTotal = filteredIncome.reduce((sum: number, inc: IncomeEntry) => sum + (inc.amount || 0), 0);
     setTotalIncome(incomeTotal);
 
+    // Calculate current period available balance (Income - Expenses), excluding previous savings
+    const calcTotalAvailableBalance = Math.round((incomeTotal - total + Number.EPSILON) * 100) / 100;
+    setTotalAvailableBalance(calcTotalAvailableBalance);
+
     const budgetTotal = budgets.reduce(
       (sum: number, budget) => sum + (Number.isFinite(budget.limit) ? budget.limit : 0),
       0,
@@ -314,7 +314,7 @@ export default function DashboardPage() {
     setTotalBudget(Math.round(budgetTotal * 100) / 100);
 
     const categoryMap = new Map();
-    filtered.forEach((exp: any) => {
+    presentMonthExpenses.forEach((exp: any) => {
       const current = categoryMap.get(exp.category) || 0;
       categoryMap.set(exp.category, current + exp.amount);
     });
@@ -593,7 +593,7 @@ export default function DashboardPage() {
         <StatCard
           title="Total Available Balance"
           amount={formatCurrency(totalAvailableBalance, userProfile)}
-          change={totalAvailableBalance >= 0 ? 'Total net available balance' : 'Net account deficit'}
+          change={totalAvailableBalance >= 0 ? 'Current period available balance' : 'Net account deficit'}
           isPositive={totalAvailableBalance >= 0}
           icon={<ArrowUpRight className="text-purple-500" />}
           color="purple"
