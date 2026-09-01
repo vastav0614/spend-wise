@@ -205,32 +205,11 @@ export default function SavingsPage() {
         </button>
       </div>
 
-      {/* Waterfall Auto-Allocation Banner */}
-      <div className="bg-gradient-to-r from-emerald-600 to-teal-700 dark:from-emerald-950 dark:to-teal-950 p-6 md:p-8 rounded-3xl text-white border border-emerald-500/30 shadow-xl flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
-        <div className="space-y-2">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 text-white text-xs font-bold backdrop-blur-sm">
-            <Sparkles size={14} className="text-amber-300" />
-            <span>Waterfall Auto-Allocation Active</span>
-          </div>
-          <h2 className="text-2xl md:text-3xl font-bold">Past Savings Pool: {formatCurrency(previousSavingsPool, userProfile)}</h2>
-          <p className="text-emerald-100 text-sm max-w-xl">
-            Calculated as Past Income ({formatCurrency(previousSavingsDetails.pastIncomeTotal, userProfile)}) minus Previous Expenses ({formatCurrency(previousSavingsDetails.pastExpenseTotal, userProfile)}). Unspent savings automatically flow to High Priority goals first!
-          </p>
-        </div>
-
-        <div className="grid grid-cols-3 gap-3 bg-white/10 p-4 rounded-2xl border border-white/10 w-full lg:w-auto text-center">
-          <div>
-            <p className="text-[11px] text-emerald-200 uppercase font-semibold">Prev. Expenses</p>
-            <p className="text-lg font-bold text-red-200">-{formatCurrency(previousSavingsDetails.pastExpenseTotal, userProfile)}</p>
-          </div>
-          <div>
-            <p className="text-[11px] text-emerald-200 uppercase font-semibold">Auto-Allocated</p>
-            <p className="text-lg font-bold text-white">+{formatCurrency(totalAllocated, userProfile)}</p>
-          </div>
-          <div>
-            <p className="text-[11px] text-emerald-200 uppercase font-semibold">Unallocated Buffer</p>
-            <p className="text-lg font-bold text-emerald-200">{formatCurrency(unallocatedRemaining, userProfile)}</p>
-          </div>
+      {/* Savings Pool Banner */}
+      <div className="bg-gradient-to-r from-emerald-600 to-teal-700 dark:from-emerald-950 dark:to-teal-950 p-6 md:p-8 rounded-3xl text-white border border-emerald-500/30 shadow-xl flex items-center justify-between">
+        <div>
+          <span className="text-emerald-200 text-xs font-bold uppercase tracking-wider">Past Savings Pool</span>
+          <h2 className="text-3xl md:text-4xl font-extrabold mt-1">{formatCurrency(previousSavingsPool, userProfile)}</h2>
         </div>
       </div>
 
